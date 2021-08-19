@@ -188,5 +188,5 @@ HubModelDeserializer.Instance.LoadCharacterAsync(
 ## Links
 - [VRoid SDK Guideline Summaries](https://app.box.com/s/tjhql9nm1zb3st24210d9udyg0d9h3vn)
 - [Official Documents](https://developer.vroid.com/sdk/docs/VRoidSDK.html)
-- [VRoid SDK Guidelines](https://vroid.pixiv.help/hc/ja/articles/900000213643-VRoid-SDK-%E3%82%AC%E3%82%A4%E3%83%89%E3%83%A9%E3%82%A4%E3%83%B3)
+- [VRoid SDK Guidelines](https://vroid.pixiv.help/hc/en-us/articles/900000213643-VRoid-SDK-Guidelines)
 - [Spectrum (previous support forum)](https://spectrum.chat/vroid-developers)
