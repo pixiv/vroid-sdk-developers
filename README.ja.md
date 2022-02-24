@@ -24,12 +24,13 @@ APIの利用には、OAuthでの連携が必要だが、その実装はかなり
 
 ### VRoid HubのAPI実行
 SDK経由でVRoid HubのAPIをC#から実行が可能
-実行結果は、C#から利用するために構造体としてシリアライズされる
+実行結果は、C#から利用するためにオブジェクトとしてシリアライズされる
 使用可能なAPIは発行されたトークンのスコープによって決められているため利用するアプリケーションによって適宜チェックを行うこと
 
 - `default`
 	- ユーザ情報の取得
 	- モデル情報の取得、ダウンロード
+  - 写真の取得・アップロード
 - `heart`
 	- モデルへハートをつける
   - モデルのハートを取り消す
@@ -41,7 +42,7 @@ SDK経由でVRoid HubのAPIをC#から実行が可能
 ## 使い方
 - ダウンロードしてきたVRoid SDKのunitypackageをUnityにインポート
 - [連携アプリケーション管理画面](https://hub.vroid.com/oauth/applications)から「新しいアプリケーション」を作成
-- SDKConfiguration (Assets/VRoidSDK/Plugins/SDKConfigurations/SDKConfiguration.assets) を作成したアプリケーションの情報をもとに設定
+- 作成したアプリケーション管理画面から、credential.json.bytesをダウンロードしプロジェクトに導入
 - スクリプティング
 
 ### 連携アプリケーションの作成
@@ -52,7 +53,9 @@ SDK経由でVRoid HubのAPIをC#から実行が可能
 #### リダイレクトURI
 - 認可コードの受け取りにつかうURI
   - iOS/Androidの場合は利用するアプリで使われるURLスキーム
-  - PC向けOSの場合は、`urn:ietf:wg:oauth:2.0:oob`
+  - Windows/MacOS向けの場合は、`urn:ietf:wg:oauth:2.0:oob` か `http://127.0.0.1`
+    - アプリケーション連携時に認可コードを手動入力する場合は `urn:ietf:wg:oauth:2.0:oob`
+    - アプリケーション連携時に認可コードを自動入力する場合は `http://127.0.0.1`
 - 複数のプラットフォームをサポートする場合は改行で追加していく
 
 #### スコープ
@@ -86,109 +89,125 @@ SDK経由でVRoid HubのAPIをC#から実行が可能
 #### 閲覧制限モデルの利用
 - 閲覧制限のあるモデルをアプリケーションで利用したくない場合に設定する
 
-### SDKConfiguration
-![SDKConfigurationの画像](./images/sdkconfiguration.png)
+### 作成したアプリケーション管理画面から、credential.json.bytesをダウンロードしプロジェクトに導入
+- アプリケーション管理画面から、「Credentialファイル作成」ボタンを押し、SDKの設定ファイルを作成する
 
-#### Application ID
-- OAuthプロバイダに設定して作成された「アプリケーションID」
-#### Secret
-- OAuthプロバイダに設定して作成された「シークレット」
-#### Android Url Scheme
-- Android向けに登録したリダイレクトURI
-#### iOS Url Scheme
-- iOS向けに登録したリダイレクトURI
-#### Scope
-- アプリで利用するAPIスコープ
+![credential.json.bytesの作成画像](./images/credential.ja.png)
 
 ### スクリプティング
 #### VRoid SDKの初期化
 
 ```csharp
-public class LoginCanvas : MonoBehaviour
-{
-    // SDKConfigurationをUnity上で設定できるようにする
-    [SerializeField] private SDKConfiguration sdkConfiguration;
-
-    private void Awake()
-    {
-        // SDKConfigurationからメタデータを取り出し、初期化
-        Authentication.Instance.Init(sdkConfiguration.AuthenticateMetaData);
-    }
-}
+// ダウンロードしたcredential.json.bytesを読み込み
+var credential = Resources.Load<TextAsset>("credential.json");
+// 設定に使うアプリ情報
+var credentialJson = credential.text;
+// 認可に使うConfigの作成
+var config = OauthProvider.LoadConfigFromCredential(credentialJson);
 ```
 
 #### OAuthの認証
 
 ```csharp
-Authentication.Instance.AuthorizeWithExistAccount((bool isAuthSuccess) =>
+// 通信に使うThreadContext
+var context = SynchronizationContext.Current;
+// OAuthの認可を扱うClientを作成する
+var oauthClient = OauthProvider.CreateOauthClient(config, context);
+// ログインに使うBrowserを作成
+var browser = BrowserProvider.Create(oauthClient, config);
+// ローカルにアカウントファイル保存済みかつ期限が切れてない
+var isLoggedIn = oauthClient.IsAccountFileExist() && !oauthClient.IsAccessTokenExpired();
+// ログイン
+if (!isLoggedIn)
 {
-    if (!isAuthSuccess)
-    {
-        // このアプリケーションでは初めての認証である
-        // ブラウザを開き、VRoid Hubサイト上にてアプリケーション連携の許可を得てから認証処理する
-        var browserAuthorize = BrowserAuthorize.GenerateInstance(sdkConfiguration);
-        browserAuthorize.OpenBrowser(AfterBrowserAuthorize);
-    }
-    else
-    {
-        AfterBrowserAuthorize(true);
-    }
-},
-(System.Exception e) => {
-    // ネットワークエラーやタイムアウト(120秒)などの問題が発生
-});
+    // すでに認可済みだが期限切れの場合は再認可。 
+    // そうでなければブラウザを開いて認可フローを開始する。
+    oauthClient.Login(
+      browser,
+      (account) => { /*ログイン成功時*/ },
+      (error) => { /*ログイン失敗時*/ }
+    );
+}
 ```
 
-iOS/Androidの場合は、URLスキーム経由でOAuthの認可コードを受け取ることができるが、デスクトップアプリケーションの場合はURLスキームの呼び出しが行えないため、手動での登録が必要
-ブラウザ上に表示される認可コードを `BrowserAuthorize#RegisterCode` を呼び出し、トークンの発行を行う
+iOS/Androidの場合は、URLスキーム経由で認可コードの受け取りが可能。
+デスクトップアプリケーションの場合はURLスキームの呼び出しが行えないため、手動での登録か、[Loopback interface redirect](https://datatracker.ietf.org/doc/html/rfc8252#section-8.3)で認可コードの受け取りが可能。
+手動入力の場合は、ブラウザ上に表示される認可コードを `browser#OnRegisterCode` を呼び出し、トークンの発行を行う
 
 ```csharp
 /*
 * 中略
 */
 
-browserAuthorize.RegisterCode(authorizeCode);
+browser.OnRegisterCode(authorizeCode);
 ```
-
 #### API実行
-- 一度、OAuthの認証を通すことで、VRoid HubのAPIを実行することができる
-- VRoid SDKでは、Unity上から利用できるように、APIへのリクエストをラップしたメソッドを用意している
-- 使えるAPIは、[HubApi](https://developer.vroid.com/sdk/docs/VRoidSDK.HubApi.html)で定義されている
+- 認証を通した `Pixiv.VroidSdk.Oauth.Client` を使ったAPIクラスを使うことでVRoid HubのAPIを利用可能
+- 使えるAPIは、[DefaultApi](https://developer.vroid.com/sdk/docs/ja/Pixiv.VroidSdk.Api.DefaultApi.html), [HeartApi](https://developer.vroid.com/sdk/docs/ja/Pixiv.VroidSdk.Api.HeartApi.html)
+
 
 例) ログインしているユーザのモデル一覧を取得
 
 ```csharp
-HubApi.GetAccountCharacterModels(
-    count: 10, // 最初から10件分を取得
-    onSuccess: (List<CharacterModel> characterModels) => {
-        /* 正常にキャラクターの情報が取得できた時の処理 */
-    },
-    onError: (ApiErrorFormat errorFormat) => {
-        /* 通信エラーなどのエラーが発生した時の処理 */
-    }
-);
+var oauthClient = OauthProvider.CreateOauthClient(config, context);
+
+// 認可を行うClientを使ってDefaultApiを作成
+var defaultApi = new DefaultApi(oauthClient);
+// ハートスコープのAPIはHeartApiを使う
+// var heartApi = new HeartApi(oauthClient);
+
+// ログイン
+if (!isLoggedIn)
+{
+    // すでに認可済みだが期限切れの場合は再認可。 
+    // そうでなければブラウザを開いて認可フローを開始する。
+    oauthClient.Login(
+      browser,
+      (_) => {
+        // 認可完了済みならAPI機能が使える
+        defaultApi.GetAccountCharacterModels(10, (characterModels) => _characterModels = characterModels, (error) => { /*取得失敗時*/ });
+      },
+      (error) => { /*ログイン失敗時*/ }
+    );
+}
 ```
 
-#### VRoid Hubのキャラクターモデルを変換
+#### VRoid Hubからモデルの読み込み
 - VRoid Hubから得られるデータはVRMファイルになるので、それをUnity側で使えるようにGameObjectに変換する
 - 内部的にはUniVRMを使って変換を行い、それをアプリケーションのコールバックに渡している
 - ダウンロードしたファイルは暗号化してキャッシュに保存する
+  - キャッシュには開発者から登録するパスワードが必要
 
 ```csharp
-HubModelDeserializer.Instance.LoadCharacterAsync(
-    characterModelId: characterModelId, // CharacterModel#id を渡す
-    onDownloadProgress: (float progress) =>
-    {
-         // VRMファイルがキャッシュされてなくダウンロードが必要な場合に、進捗状況が0.0〜1.0の間で通知される
-    },
-    onLoadComplete: (GameObject characterObj) =>
-    {
-         // UniVRMでVRMファイルから変換されたGameObjectが返される
-    },
-    onError: (System.Exception error) =>
-    {
-        // 実行中にエラーが発生した場合、呼び出される
-    }
+oauthClient.Login(
+  browser,
+  (account) => {
+    // モデル読み込みに使うModelLoaderを初期化
+    ModelLoader.Initialize(
+      config,                  // Credentialから作成したConfig
+      defaultApi,              // 認可済みのAPI
+      "PASSWORD_FOR_YOUR_APP", // モデル暗号化のパスワード
+      10                       // モデルの最大キャッシュ数
+    );
+
+    defaultApi.GetAccountCharacterModels(10, (models) => {
+      // モデル読み込みの開始
+      ModelLoader.LoadVrm(
+        models[0],  // 読み込むモデル
+        (gameObject) => {
+          // 読み込み完了後のコールバック
+          gameObject.transform.parent = this.transform;
+        },
+        (progress) => {
+          // 読み込み中の進捗コールバック
+        },
+        (error) => {
+          // エラー発生時のコールバック
+        }
+      );
+    }, (error) => { });
+  },
+  (error) => { /*ログイン失敗時*/ }
 );
 ```
 
