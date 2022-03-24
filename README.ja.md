@@ -143,7 +143,7 @@ browser.OnRegisterCode(authorizeCode);
 ```
 #### API実行
 - 認証を通した `Pixiv.VroidSdk.Oauth.Client` を使ったAPIクラスを使うことでVRoid HubのAPIを利用可能
-- 使えるAPIは、[DefaultApi](https://developer.vroid.com/sdk/docs/ja/Pixiv.VroidSdk.Api.DefaultApi.html), [HeartApi](https://developer.vroid.com/sdk/docs/ja/Pixiv.VroidSdk.Api.HeartApi.html)
+- 使えるAPIは、[DefaultApi](https://developer.vroid.com/ja/sdk/docs/0.1.0/Pixiv.VroidSdk.Api.DefaultApi.html), [HeartApi](https://developer.vroid.com/ja/sdk/docs/0.1.0/Pixiv.VroidSdk.Api.HeartApi.html)
 
 
 例) ログインしているユーザのモデル一覧を取得
