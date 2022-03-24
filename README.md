@@ -35,7 +35,7 @@ You can run API calls to VRoid Hub by using C# via SDK. The call result is seria
 
 ## How to Use
 - Import "unitypackage" in the VRoid SDK onto Unity.
-- Create a new application via the integrated application management page
+- Create a new application via the [integrated application management page](https://hub.vroid.com/oauth/applications)
 - Download the credential.json.bytes from the created application management page and import into the project
 - Scripting
 
