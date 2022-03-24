@@ -87,7 +87,7 @@ You can run API calls to VRoid Hub by using C# via SDK. The call result is seria
 ### Download the credential.json.bytes from the created application management page and import into the project
 - From the application management page, click the "Create Credential file" button to create an SDK settings file
 
-![credential.json.bytesの作成画像](./images/credential.ja.png)
+![credential.json.bytes](./images/credential.en.png)
 
 ### Scripting
 #### Initializing the VRoid SDK
