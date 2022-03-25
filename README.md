@@ -204,7 +204,8 @@ oauthClient.Login(
 );
 ```
 ## Links
-- [VRoid SDK Guideline Summaries](https://app.box.com/s/tjhql9nm1zb3st24210d9udyg0d9h3vn)
-- [Official Documents](https://developer.vroid.com/sdk/docs/VRoidSDK.html)
+- [Installation manual (v0.1.0)](https://vroid.notion.site/VRoid-SDK-0-1-0-Manual-e56e7880db094b91aae3538c5e0fe3fa)
+- [VRoid SDK Guideline Summaries (v0.0.21)](https://app.box.com/s/tjhql9nm1zb3st24210d9udyg0d9h3vn)
+- [Official Documents](https://developer.vroid.com/en/sdk/docs/0.1.0/Pixiv.VroidSdk.html)
 - [VRoid SDK Guidelines](https://vroid.pixiv.help/hc/en-us/articles/900000213643-VRoid-SDK-Guidelines)
 - [Spectrum (previous support forum)](https://spectrum.chat/vroid-developers)

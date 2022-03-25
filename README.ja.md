@@ -212,7 +212,8 @@ oauthClient.Login(
 ```
 
 ## リンク集
-- [VRoid SDK 利用方法概略](https://app.box.com/s/tjhql9nm1zb3st24210d9udyg0d9h3vn)
-- [公式ドキュメント](https://developer.vroid.com/sdk/docs/VRoidSDK.html)
+- [導入マニュアル (v0.1.0)](https://vroid.notion.site/VRoid-SDK-0-1-0-5e8631655fcd4ed889be4f5110bc4266)
+- [VRoid SDK 利用方法概略(v0.0.21)](https://app.box.com/s/tjhql9nm1zb3st24210d9udyg0d9h3vn)
+- [公式ドキュメント](https://developer.vroid.com/ja/sdk/docs/0.1.0/Pixiv.VroidSdk.html)
 - [VRoid SDK ガイドライン](https://vroid.pixiv.help/hc/ja/articles/900000213643-VRoid-SDK-%E3%82%AC%E3%82%A4%E3%83%89%E3%83%A9%E3%82%A4%E3%83%B3)
 - [Spectrum(旧サポートフォーラム)](https://spectrum.chat/vroid-developers)
