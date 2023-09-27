@@ -103,7 +103,7 @@ var credential = Resources.Load<TextAsset>("credential.json");
 // 設定に使うアプリ情報
 var credentialJson = credential.text;
 // 認可に使うConfigの作成
-var config = OauthProvider.LoadConfigFromCredential(credentialJson);
+var config = OauthProvider.CreateSdkConfig(credentialJson);
 ```
 
 #### OAuthの認証
