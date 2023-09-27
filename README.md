@@ -98,7 +98,7 @@ var credential = Resources.Load<TextAsset>("credential.json");
 // app data to use for settings
 var credentialJson = credential.text;
 // Create Config to use for authorization
-var config = OauthProvider.LoadConfigFromCredential(credentialJson);
+var config = OauthProvider.CreateSdkConfig(credentialJson);
 ```
 
 #### OAuth Authentication
